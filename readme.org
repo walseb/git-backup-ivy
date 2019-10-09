@@ -1,0 +1,8 @@
+A ivy interface to [[https://github.com/antham/helm-backup][helm-backup]
+
+* Installation
+Since this is only a interface, read [[https://github.com/antham/helm-backup][helm-backup] for how to setup the backend
+
+* Instructions
+Run ~M-x ivy-backup~
+For options like ediff or open in new buffer, run ~ivy-dispatching-done~ while running ivy-backup. By default this is bound to C-o
