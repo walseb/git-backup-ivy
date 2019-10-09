@@ -1,7 +1,7 @@
-A ivy interface to [[https://github.com/antham/helm-backup][helm-backup]
+A ivy interface to [[https://github.com/antham/helm-backup][helm-backup]]
 
 * Installation
-Since this is only a interface, read [[https://github.com/antham/helm-backup][helm-backup] for how to setup the backend
+Since this is only a interface, read [[https://github.com/antham/helm-backup][helm-backup]] for how to setup the backend
 
 * Instructions
 Run ~M-x ivy-backup~
