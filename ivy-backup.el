@@ -3,7 +3,7 @@
 ;; Author: Sebastian Wålinder <s.walinder@gmail.com>
 ;; URL: https://github.com/walseb/ivy-backup
 ;; Version: 1.0
-;; Package-Requires: ((ivy "0.12.0") (helm-backup "1.1.1"))
+;; Package-Requires: ((ivy "0.12.0") (helm-backup "1.1.1") (emacs "24"))
 ;; Keywords: backup, convenience, files, tools, vc
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -34,16 +34,15 @@
 (defun ivy-backup ()
   "Main function used to call `ivy-backup`."
   (interactive)
-  (let ((helm-quit-if-no-candidate
-         (lambda ()
-           (error
-            "No filename associated with buffer, file has no backup yet or filename is blacklisted"))))
-    (ivy-read
-     (format "Backup for %s" (buffer-file-name))
-     (helm-backup--list-file-change-time (buffer-file-name))
-     :action (lambda (candidate)
-               (with-helm-current-buffer
-                 (helm-backup--replace-current-buffer (cdr candidate) (buffer-file-name)))))))
+  (let ((candidates (helm-backup--list-file-change-time (buffer-file-name))))
+    (if candidates
+	(ivy-read
+	 (format "Backup for %s" (buffer-file-name))
+	 candidates
+	 :action (lambda (candidate)
+		   (with-helm-current-buffer
+		     (helm-backup--replace-current-buffer (cdr candidate) (buffer-file-name)))))
+      (error "No filename associated with buffer, file has no backup yet or filename is blacklisted"))))
 
 (ivy-set-actions
  'ivy-backup
