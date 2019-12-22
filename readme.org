@@ -3,7 +3,9 @@ Read [[https://github.com/antham/git-backup][git-backup]] for dependencies.
 
 
 To make git-backup auto-backup the current file every time you save you can add this to your config:
-~(add-hook 'after-save-hook '(lambda () (git-backup-version-file git-backup-ivy-git-path git-backup-ivy-backup-path nil (buffer-file-name))))~
+#+begin_example
+(add-hook 'after-save-hook '(lambda () (git-backup-version-file git-backup-ivy-git-path git-backup-ivy-backup-path nil (buffer-file-name))))
+#+end_example
 
 * Instructions
 Run ~M-x git-backup-ivy~.
