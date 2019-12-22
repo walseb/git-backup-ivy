@@ -1,7 +1,4 @@
-* Installation
-An ivy interface to [[https://github.com/antham/git-backup][git-backup]]
-
+Read [[https://github.com/antham/git-backup][git-backup]] for dependencies.
 * Instructions
-Read [[https://github.com/antham/git-backup][git-backup]] for dependencies
-Run ~M-x git-backup-ivy~
-For options like ~ediff~ or open in new buffer, run ~ivy-dispatching-done~ while running git-backup-ivy. By default this is bound to C-o
+Run ~M-x git-backup-ivy~.
+For options like ~ediff~ or open in new buffer, run ~ivy-dispatching-done~ while ivy is open. By default this is bound to C-o
