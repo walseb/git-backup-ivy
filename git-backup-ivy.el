@@ -1,4 +1,4 @@
-;;; git-backup-ivy.el --- A ivy interface to git-backup -*- lexical-binding: t -*-
+;;; git-backup-ivy.el --- An ivy interface to git-backup -*- lexical-binding: t -*-
 
 ;; Author: Sebastian Wålinder <s.walinder@gmail.com>
 ;; URL: https://github.com/walseb/git-backup-ivy
@@ -20,7 +20,6 @@
 ;; see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
 ;; This package is a interface to git-backup
 
 ;; For options like ediff or open in new buffer, run `ivy-dispatching-done'
@@ -39,7 +38,7 @@
   :group 'git-backup-ivy
   :type 'string)
 
-(defcustom git-backup-ivy-backup-path (concat user-emacs-directory "git-backup")
+(defcustom git-backup-ivy-backup-path (concat user-emacs-directory ".git-backup")
   "The path where backups are stored."
   :group 'git-backup-ivy
   :type 'string)
