@@ -45,7 +45,7 @@
   :type 'string)
 
 (defcustom git-backup-ivy-list-format "%cd, %ar"
-  "Format use to display entries in helm buffer, follow git log format."
+  "Format use to display entries in ivy buffer, follow git log format."
   :group 'git-backup-ivy
   :type 'string)
 
