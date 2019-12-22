@@ -1,4 +1,4 @@
-;;; git-backup-ivy.el --- An ivy frontend to helm-backup -*- lexical-binding: t -*-
+;;; git-backup-ivy.el --- A ivy interface to git-backup -*- lexical-binding: t -*-
 
 ;; Author: Sebastian Wålinder <s.walinder@gmail.com>
 ;; URL: https://github.com/walseb/git-backup-ivy
