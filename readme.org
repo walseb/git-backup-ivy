@@ -1,6 +1,7 @@
 * Installation
-Since this is only a interface, read [[https://github.com/antham/helm-backup][helm-backup]] for how to setup the backend
+An ivy interface to [[https://github.com/antham/git-backup][git-backup]]
 
 * Instructions
-Run ~M-x ivy-backup~
-For options like ediff or open in new buffer, run ~ivy-dispatching-done~ while running ivy-backup. By default this is bound to C-o
+Read [[https://github.com/antham/git-backup][git-backup]] for dependencies
+Run ~M-x git-backup-ivy~
+For options like ~ediff~ or open in new buffer, run ~ivy-dispatching-done~ while running git-backup-ivy. By default this is bound to C-o
