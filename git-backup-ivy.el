@@ -31,8 +31,8 @@
 (require 'git-backup)
 
 (defgroup git-backup-ivy nil
-  "Backup system using git and helm."
-  :group 'helm)
+  "Interface to backup system git-backup using ivy."
+  :group 'ivy)
 
 (defcustom git-backup-ivy-git-path (executable-find "git")
   "Path to a git binary."
