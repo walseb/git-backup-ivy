@@ -38,7 +38,7 @@
   :group 'git-backup-ivy
   :type 'string)
 
-(defcustom git-backup-ivy-backup-path (concat user-emacs-directory ".git-backup")
+(defcustom git-backup-ivy-backup-path (expand-file-name (concat user-emacs-directory ".git-backup"))
   "The path where backups are stored."
   :group 'git-backup-ivy
   :type 'string)
