@@ -1,3 +1,5 @@
+[[https://melpa.org/#/git-backup-ivy][file:https://melpa.org/packages/git-backup-ivy-badge.svg]]
+
 * Installation
 Read [[https://github.com/antham/git-backup][git-backup]] for dependencies.
 
