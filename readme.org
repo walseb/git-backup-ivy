@@ -12,3 +12,10 @@ To make git-backup auto-backup the current file every time you save you can add 
 * Instructions
 Run ~M-x git-backup-ivy~.
 For options like ~ediff~ or open in new buffer, run ~ivy-dispatching-done~ while ivy is open. By default this is bound to C-o
+
+** Preview
+This packages gives you a diff preview while choosing what state to restore.
+To see as much as possible of this diff you could put this in your config:
+#+begin_example
+(add-to-list 'ivy-height-alist '(git-backup-ivy . 3))
+#+end_example
