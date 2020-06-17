@@ -68,7 +68,7 @@ Used in `git-backup-ivy-update-fn'.")
 
 (defun git-backup-ivy-update-fn ()
   "Provides a diff preview for `git-backup-ivy'."
-  (when git-backup-ivy-preview
+  (when (and git-backup-ivy-preview (> ivy--length 0))
     (let* ((curr-buffer (ivy-state-buffer ivy-last))
            (curr-file (buffer-file-name curr-buffer))
 
@@ -121,6 +121,7 @@ Used in `git-backup-ivy-update-fn'.")
 	(ivy-read
 	 (format "Backup for %s: " (buffer-file-name))
 	 candidates
+	 :require-match t
 	 :update-fn #'git-backup-ivy-update-fn
 	 :action (lambda (candidate)
 		   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))))
