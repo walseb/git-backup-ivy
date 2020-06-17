@@ -2,7 +2,7 @@
 
 ;; Author: Sebastian Wålinder <s.walinder@gmail.com>
 ;; URL: https://github.com/walseb/git-backup-ivy
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((ivy "0.12.0") (git-backup "0.0.1") (emacs "25.1"))
 ;; Keywords: backup, convenience, files, tools, vc
 
