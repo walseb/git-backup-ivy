@@ -28,6 +28,8 @@
 ;;; Code:
 (require 'ivy)
 (require 'git-backup)
+(require 'seq)
+(require 'diff)
 
 (defgroup git-backup-ivy nil
   "Interface to backup system git-backup using ivy."
