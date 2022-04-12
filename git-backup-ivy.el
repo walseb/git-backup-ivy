@@ -116,7 +116,8 @@ Used in `git-backup-ivy-update-fn'.")
 (defun git-backup-ivy ()
   "Main function to bring up interface for interacting with git-backup."
   (interactive)
-  (let ((candidates (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
+  (let ((pt (point))
+	(candidates (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
     (when git-backup-ivy-preview
       (setq git-backup-ivy-preview-backup-list-cache candidates))
     (if candidates
@@ -126,7 +127,8 @@ Used in `git-backup-ivy-update-fn'.")
 	 :require-match t
 	 :update-fn #'git-backup-ivy-update-fn
 	 :action (lambda (candidate)
-		   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))))
+		   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
+		   (goto-char pt)))
       (error "No filename associated with buffer, file has no backup yet or filename is blacklisted"))))
 
 (ivy-set-actions
