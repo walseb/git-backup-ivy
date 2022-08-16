@@ -95,40 +95,37 @@ Used in `git-backup-ivy-update-fn'.")
 
       ;; Taken from undo-tree. Removes unnecessary git diff text
       (when git-backup-ivy-preview-remove-header
-	(with-current-buffer diff-buffer
-	  (let ((inhibit-read-only t))
-	    (goto-char (point-min))
-	    (delete-region (point) (1+ (line-end-position 3)))
-	    (goto-char (point-max))
-	    (forward-line -2)
-	    (delete-region (point) (point-max))
-	    (setq cursor-type nil)
-	    (setq buffer-read-only t))))
+        (with-current-buffer diff-buffer
+          (let ((inhibit-read-only t))
+            (goto-char (point-min))
+            (delete-region (point) (1+ (line-end-position 3)))
+            (goto-char (point-max))
+            (forward-line -2)
+            (delete-region (point) (point-max))
+            (setq cursor-type nil)
+            (setq buffer-read-only t))))
 
       (with-ivy-window
-	;; Show diff buffer to user
-        (switch-to-buffer diff-buffer)
-        ;; Sometimes the cursor is not returned to the minibuffer.
-	;; This fixes that
-        (select-window (active-minibuffer-window))))))
+        ;; Show diff buffer to user
+        (display-buffer diff-buffer)))))
 
 ;;;###autoload
 (defun git-backup-ivy ()
   "Main function to bring up interface for interacting with git-backup."
   (interactive)
   (let ((pt (point))
-	(candidates (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
+        (candidates (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
     (when git-backup-ivy-preview
       (setq git-backup-ivy-preview-backup-list-cache candidates))
     (if candidates
-	(ivy-read
-	 (format "Backup for %s: " (buffer-file-name))
-	 candidates
-	 :require-match t
-	 :update-fn #'git-backup-ivy-update-fn
-	 :action (lambda (candidate)
-		   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
-		   (goto-char pt)))
+        (ivy-read
+         (format "Backup for %s: " (buffer-file-name))
+         candidates
+         :require-match t
+         :update-fn #'git-backup-ivy-update-fn
+         :action (lambda (candidate)
+                   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
+                   (goto-char pt)))
       (error "No filename associated with buffer, file has no backup yet or filename is blacklisted"))))
 
 (ivy-set-actions
@@ -138,8 +135,8 @@ Used in `git-backup-ivy-update-fn'.")
    ("f" (lambda (candidate)
           (git-backup-open-in-new-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))) "Open in new buffer")
    ("D" (lambda (candidate)
-	  (when (yes-or-no-p "Really delete all backups of this file?")
-	    (git-backup-remove-file-backups git-backup-ivy-git-path git-backup-ivy-backup-path (buffer-file-name)))) "Delete all backups of file")))
+          (when (yes-or-no-p "Really delete all backups of this file?")
+            (git-backup-remove-file-backups git-backup-ivy-git-path git-backup-ivy-backup-path (buffer-file-name)))) "Delete all backups of file")))
 
 (provide 'git-backup-ivy)
 
