@@ -75,6 +75,12 @@ This makes it possible to quickly change commit in long files."
   :group 'git-backup-ivy
   :type 'boolean)
 
+(defcustom git-backup-ivy-preview-diff-switches nil
+  "Flags to send diff when previewing commit.
+If nil `diff-switches` are used."
+  :group 'git-backup-ivy
+  :type 'string)
+
 (defvar git-backup-ivy-preview-backup-list-cache nil
   "A cache containing the all candidates in current search.
 Used in `git-backup-ivy-update-fn'.")
@@ -106,7 +112,7 @@ associated buffer needs to still be live.")
                (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file)))
 
              (diff-buffer
-              (diff-no-select curr-file (current-buffer) nil (not git-backup-ivy-preview-async)
+              (diff-no-select curr-file (current-buffer) git-backup-ivy-preview-diff-switches (not git-backup-ivy-preview-async)
                               (generate-new-buffer (generate-new-buffer-name git-backup-ivy-preview)))))
 
         ;; Taken from undo-tree. Removes unnecessary git diff text
