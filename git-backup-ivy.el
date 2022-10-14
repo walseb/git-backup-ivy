@@ -50,7 +50,7 @@
   :group 'git-backup-ivy
   :type 'string)
 
-(defcustom git-backup-ivy-preview "*git-backup-ivy-diff*"
+(defcustom git-backup-ivy-preview t
   "If nil don't show a preview buffer when running `git-backup-ivy'.
 If nil then don't show a preview buffer at all. Otherwise enter a string,which
 will be used  as the name for the temporary buffer that displays the preview."
@@ -64,6 +64,12 @@ a temporary file."
   :group 'git-backup-ivy
   :type 'boolean)
 
+(defcustom git-backup-ivy-preview-async t
+  "If t, generate preview diff asynchronously.
+This makes it possible to quickly change commit in long files."
+  :group 'git-backup-ivy
+  :type 'boolean)
+
 (defvar git-backup-ivy-preview-backup-list-cache nil
   "A cache containing the all candidates in current search.
 Used in `git-backup-ivy-update-fn'.")
@@ -71,50 +77,48 @@ Used in `git-backup-ivy-update-fn'.")
 (defun git-backup-ivy-update-fn ()
   "Provides a diff preview for `git-backup-ivy'."
   (when (and git-backup-ivy-preview (> ivy--length 0))
-    (let* ((curr-buffer (ivy-state-buffer ivy-last))
-           (curr-file (buffer-file-name curr-buffer))
+    (with-temp-buffer
+      (let* ((curr-buffer (ivy-state-buffer ivy-last))
+             (curr-file (buffer-file-name curr-buffer))
+             (candidate (ivy-state-current ivy-last))
+             (candidate-hash
+              (cdr (seq-find (lambda (list-candidate)
+                               (if (string= (car list-candidate) candidate)
+                                   t
+                                 nil))
+                             git-backup-ivy-preview-backup-list-cache)))
+             (old-backup-str
+              (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file))
+             (diff-buffer
+              (progn
+                ;; Remember that in the current scope is the temp buffer that contains the older version of the file selected.
+                (insert old-backup-str)
+                (diff-no-select curr-file (current-buffer) nil git-backup-ivy-preview-async))))
 
-           (candidate (ivy-state-current ivy-last))
-           (candidate-hash (cdr (seq-find (lambda (list-candidate)
-                                            (if (string= (car list-candidate) candidate)
-                                                t
-                                              nil))
-                                          git-backup-ivy-preview-backup-list-cache)))
-           (old-backup-str (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file))
-           (old-backup-temp-file (make-temp-file "git-backup-ivy-preview-temp-"))
+        ;; Taken from undo-tree. Removes unnecessary git diff text
+        (when git-backup-ivy-preview-remove-header
+          (with-current-buffer diff-buffer
+            (let ((inhibit-read-only t))
+              (goto-char (point-min))
+              (delete-region (point) (1+ (line-end-position 3)))
+              (goto-char (point-max))
+              (forward-line -2)
+              (delete-region (point) (point-max))
+              (setq cursor-type nil)
+              (setq buffer-read-only t))))
 
-           (diff-buffer (get-buffer-create git-backup-ivy-preview)))
-
-      ;; Write old backup to temp buffer
-      (write-region old-backup-str nil old-backup-temp-file nil 'nomessage)
-
-      ;; Create diff. This has to be run on two files.
-      (diff-no-select curr-file old-backup-temp-file nil 'noasync diff-buffer)
-      ;; Don't litter /tmp
-      (delete-file old-backup-temp-file)
-
-      ;; Taken from undo-tree. Removes unnecessary git diff text
-      (when git-backup-ivy-preview-remove-header
-        (with-current-buffer diff-buffer
-          (let ((inhibit-read-only t))
-            (goto-char (point-min))
-            (delete-region (point) (1+ (line-end-position 3)))
-            (goto-char (point-max))
-            (forward-line -2)
-            (delete-region (point) (point-max))
-            (setq cursor-type nil)
-            (setq buffer-read-only t))))
-
-      (with-ivy-window
-        ;; Show diff buffer to user
-        (display-buffer diff-buffer)))))
+        (with-ivy-window
+          ;; Show diff buffer to user
+          (display-buffer diff-buffer))))))
 
 ;;;###autoload
 (defun git-backup-ivy ()
   "Main function to bring up interface for interacting with git-backup."
   (interactive)
   (let ((pt (point))
-        (candidates (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
+        (candidates
+         ;; Do cdr as the first one will always be identical to the current buffer
+         (cdr (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name)))))
     (when git-backup-ivy-preview
       (setq git-backup-ivy-preview-backup-list-cache candidates))
     (if candidates
