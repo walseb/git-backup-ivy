@@ -50,7 +50,7 @@
   :group 'git-backup-ivy
   :type 'string)
 
-(defcustom git-backup-ivy-preview t
+(defcustom git-backup-ivy-preview " *git-backup-ivy-diff*"
   "If nil don't show a preview buffer when running `git-backup-ivy'.
 If nil then don't show a preview buffer at all. Otherwise enter a string,which
 will be used  as the name for the temporary buffer that displays the preview."
@@ -70,9 +70,21 @@ This makes it possible to quickly change commit in long files."
   :group 'git-backup-ivy
   :type 'boolean)
 
+(defcustom git-backup-ivy-hide-current t
+  "If t, hide the current version of the file from selection."
+  :group 'git-backup-ivy
+  :type 'boolean)
+
 (defvar git-backup-ivy-preview-backup-list-cache nil
   "A cache containing the all candidates in current search.
 Used in `git-backup-ivy-update-fn'.")
+
+(defvar git-backup-ivy-preview-buffers-list nil
+  "Stores previous git backup preview buffers.
+This is so that they can be killed in the future when they aren't needed
+anymore. The reason the buffers and associated processes aren't killed right
+away is because the process needs a while to turn off fully during which the
+associated buffer needs to still be live.")
 
 (defun git-backup-ivy-update-fn ()
   "Provides a diff preview for `git-backup-ivy'."
@@ -87,16 +99,19 @@ Used in `git-backup-ivy-update-fn'.")
                                    t
                                  nil))
                              git-backup-ivy-preview-backup-list-cache)))
-             (old-backup-str
-              (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file))
+             (_
+              ;; Remember that in the current scope is the temp buffer that contains the older version of the file selected.
+              (insert
+               ;; Selected file
+               (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file)))
+
              (diff-buffer
-              (progn
-                ;; Remember that in the current scope is the temp buffer that contains the older version of the file selected.
-                (insert old-backup-str)
-                (diff-no-select curr-file (current-buffer) nil git-backup-ivy-preview-async))))
+              (diff-no-select curr-file (current-buffer) nil (not git-backup-ivy-preview-async)
+                              (generate-new-buffer (generate-new-buffer-name git-backup-ivy-preview)))))
 
         ;; Taken from undo-tree. Removes unnecessary git diff text
-        (when git-backup-ivy-preview-remove-header
+        ;; Doesn't work when running diff in async as the diff startup time isn't instant
+        (when (and git-backup-ivy-preview-remove-header (not git-backup-ivy-preview-async))
           (with-current-buffer diff-buffer
             (let ((inhibit-read-only t))
               (goto-char (point-min))
@@ -107,29 +122,53 @@ Used in `git-backup-ivy-update-fn'.")
               (setq cursor-type nil)
               (setq buffer-read-only t))))
 
+        ;; Kill old git backup ivy buffers as we know they aren't needed anymore
+        (git-backup-ivy-preview-kill-preview-buffers)
+
+        (push diff-buffer git-backup-ivy-preview-buffers-list)
+
         (with-ivy-window
           ;; Show diff buffer to user
           (display-buffer diff-buffer))))))
+
+(defun git-backup-ivy-preview-kill-preview-buffers ()
+  "Kill all git preview buffers."
+  (seq-filter (lambda (a)
+                (and (buffer-live-p a)
+                     (let ((proc (get-buffer-process a)))
+                       (if proc
+                           (progn (kill-process proc) t)
+                         (kill-buffer a)
+                         nil))))
+              git-backup-ivy-preview-buffers-list))
 
 ;;;###autoload
 (defun git-backup-ivy ()
   "Main function to bring up interface for interacting with git-backup."
   (interactive)
-  (let ((pt (point))
-        (candidates
-         ;; Do cdr as the first one will always be identical to the current buffer
-         (cdr (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name)))))
+  (let* ((pt (point))
+         (candidates-all
+          ;; Do cdr as the first one will always be identical to the current buffer
+          (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name)))
+         (candidates
+          (if git-backup-ivy-hide-current
+              (cdr candidates-all)
+            candidates-all)))
     (when git-backup-ivy-preview
       (setq git-backup-ivy-preview-backup-list-cache candidates))
     (if candidates
-        (ivy-read
-         (format "Backup for %s: " (buffer-file-name))
-         candidates
-         :require-match t
-         :update-fn #'git-backup-ivy-update-fn
-         :action (lambda (candidate)
-                   (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
-                   (goto-char pt)))
+        (unwind-protect
+            (ivy-read
+             (format "Backup for %s: " (buffer-file-name))
+             candidates
+             :require-match t
+             :update-fn #'git-backup-ivy-update-fn
+             :action (lambda (candidate)
+                       (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
+                       (goto-char pt)))
+          (when git-backup-ivy-preview
+            ;; Do this in unwind-protect as it allows C-g to be used to exit
+            (git-backup-ivy-preview-kill-preview-buffers)))
       (error "No filename associated with buffer, file has no backup yet or filename is blacklisted"))))
 
 (ivy-set-actions
