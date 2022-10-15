@@ -50,7 +50,7 @@
   :group 'git-backup-ivy
   :type 'string)
 
-(defcustom git-backup-ivy-preview " *git-backup-ivy-diff*"
+(defcustom git-backup-ivy-preview "*git-backup-ivy-diff*"
   "If nil don't show a preview buffer when running `git-backup-ivy'.
 If nil then don't show a preview buffer at all. Otherwise enter a string,which
 will be used  as the name for the temporary buffer that displays the preview."
