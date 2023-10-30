@@ -92,6 +92,10 @@ anymore. The reason the buffers and associated processes aren't killed right
 away is because the process needs a while to turn off fully during which the
 associated buffer needs to still be live.")
 
+(defmacro git-backup-ivy-with-inhibit-quit (&rest body)
+  `(let ((inhibit-quit t))
+     ,@body))
+
 (defun git-backup-ivy-update-fn ()
   "Provides a diff preview for `git-backup-ivy'."
   (when (and git-backup-ivy-preview (> ivy--length 0))
@@ -109,7 +113,8 @@ associated buffer needs to still be live.")
               ;; Remember that in the current scope is the temp buffer that contains the older version of the file selected.
               (insert
                ;; Selected file
-               (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file)))
+               (git-backup-ivy-with-inhibit-quit
+                (git-backup--fetch-backup-file git-backup-ivy-git-path git-backup-ivy-backup-path candidate-hash curr-file))))
 
              (diff-buffer
               (diff-no-select curr-file (current-buffer) git-backup-ivy-preview-diff-switches (not git-backup-ivy-preview-async)
@@ -155,7 +160,8 @@ associated buffer needs to still be live.")
   (let* ((pt (point))
          (candidates-all
           ;; Do cdr as the first one will always be identical to the current buffer
-          (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name)))
+          (git-backup-ivy-with-inhibit-quit
+           (git-backup-list-file-change-time git-backup-ivy-git-path git-backup-ivy-backup-path git-backup-ivy-list-format (buffer-file-name))))
          (candidates
           (if git-backup-ivy-hide-current
               (cdr candidates-all)
@@ -170,7 +176,8 @@ associated buffer needs to still be live.")
              :require-match t
              :update-fn #'git-backup-ivy-update-fn
              :action (lambda (candidate)
-                       (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))
+                       (git-backup-ivy-with-inhibit-quit
+                        (git-backup-replace-current-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name)))
                        (goto-char pt)))
           (when git-backup-ivy-preview
             ;; Do this in unwind-protect as it allows C-g to be used to exit
@@ -180,12 +187,15 @@ associated buffer needs to still be live.")
 (ivy-set-actions
  'git-backup-ivy
  '(("e" (lambda (candidate)
-          (git-backup-create-ediff git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (current-buffer))) "Ediff file with backup")
+          (git-backup-ivy-with-inhibit-quit
+           (git-backup-create-ediff git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (current-buffer)))) "Ediff file with backup")
    ("f" (lambda (candidate)
-          (git-backup-open-in-new-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name))) "Open in new buffer")
+          (git-backup-ivy-with-inhibit-quit
+           (git-backup-open-in-new-buffer git-backup-ivy-git-path git-backup-ivy-backup-path (cdr candidate) (buffer-file-name)))) "Open in new buffer")
    ("D" (lambda (candidate)
           (when (yes-or-no-p "Really delete all backups of this file?")
-            (git-backup-remove-file-backups git-backup-ivy-git-path git-backup-ivy-backup-path (buffer-file-name)))) "Delete all backups of file")))
+            (git-backup-ivy-with-inhibit-quit
+             (git-backup-remove-file-backups git-backup-ivy-git-path git-backup-ivy-backup-path (buffer-file-name))))) "Delete all backups of file")))
 
 (provide 'git-backup-ivy)
 
